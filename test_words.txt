@@ -1,0 +1,50 @@
+home * |watch
+* home |watch
+popcorn * |see
+* popcorn |see
+Was * |watch
+Had been * |watch
+the movie * |see
+* the movie |see
+yesterday * |see
+* yesterday |see
+tomorrow * |see
+* tomorrow |see
+today * |see
+* today |see
+couch * |watch
+* couch |watch
+tv * |watch
+* tv |watch
+theater * |see
+* theater |see
+show * |watch
+* show |watch
+movie * |see
+* movie |see
+a movie * |see
+* a movie |see
+film * |see
+* film |see
+burito * |watch
+* burito |watch
+episode * |watch
+* episode |watch
+the episode * |watch
+* the episode |watch
+the * |see
+* the |see
+it * |see
+* it |see
+while * |watch
+* while |watch
+during * |watch
+* during |watch
+when * |watch
+* when |watch
+achivement * |see
+* achivement |see
+activity * |watch
+* activity |watch
+the parking * |see
+* the parking |see

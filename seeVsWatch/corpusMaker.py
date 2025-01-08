@@ -145,6 +145,7 @@ class Corpus:
     
 
 '''
+These are extra function I would like to add
 to make: 
 pos finder
 sentence finder 

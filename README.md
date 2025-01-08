@@ -1,0 +1,1 @@
+This holds a project done in school, the project folder has its own read me.

@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# The goal of this model is to be able to guess whether the lemma see or watch takes the place of the target symbol * in a variety of contexts. The data used is from COCA and has been downloaded and can be worked with using a separate py file. There is an extra test set of made up sentences that are specifically about the viewing of digital media, this test set is the basis for a paper I am writing for my semantics class. 
+# This was originally written in jupyter using an anaconda environment
+
+"""The goal of this model is to be able to guess whether the lemma see or watch takes the place of the target symbol * in a variety 
+of contexts. The data used is from COCA and has been downloaded and can be worked with using a separate py file. There is an 
+extra test set of made up sentences that are specifically about the viewing of digital media, this test set is the basis for 
+a paper I wrote for my semantics class. """
+
 # corpusmaker is the py file that holds my corpus class
 from  corpusMaker import Corpus
 import random
@@ -10,20 +16,15 @@ import numpy as np
 import pandas as pd
 import gradio
 from tqdm.autonotebook import tqdm
-import sys 
-sys.path.append("cd/User/augustmilliken/Documents/GitHub/Projects-/COCA")
-# import COCA
 coca = Corpus()
-
 
 # reads in all the files into the coca object 
 files = ["wlp_acad.txt", "wlp_blog.txt", "wlp_fic.txt", "wlp_mag.txt", "wlp_news.txt", "wlp_spok.txt", "wlp_tvm.txt", "wlp_web.txt"]
-coca.readInSeveral(files)
+coca.readInSeveral(files, "seeVsWatch/COCA/")
 
-
-# function goes through all the data and processes it by finding where in the setence the keyword is and 
-# replacing it with the target symbol * and adds a tuple of the processed sentence and the keyword. a set 
-# is used to prevent duplicate datum. takes the data
+"""function goes through all the data and processes it by finding where in the setence the keyword is and 
+replacing it with the target symbol * and adds a tuple of the processed sentence and the keyword. a set 
+is used to prevent duplicate datum. takes the data"""
 def processing(inData):
     # the data to be returned 
     outData = []
@@ -41,7 +42,6 @@ def processing(inData):
             outData.append((fullSent, sentence[1], sentence[2]))
     return outData
 
-
 # function divides up data into training, dev, and test data. takes the see and watch data 
 def splitData(see, watch):
     # shuffles the data to randomize
@@ -54,18 +54,16 @@ def splitData(see, watch):
     train = see[:seeSplit1] + watch[:watchSplit1]
     dev = see[seeSplit1:seeSplit2] + watch[watchSplit1:watchSplit2]
     test = see[seeSplit2:] + watch[watchSplit2:]
-
     # shuffles so its not just see then watch for all, though it does not matter
     random.shuffle(train)
     random.shuffle(dev)
     random.shuffle(test)
-    
     return train, dev, test
 
 
-# creates and returns a context vector, made up of the left and right context vecctors concatonated together, 
-# for a given sentence, takes the data, the size of the vectors (so that they can match), and the vectors 
-# object so that each word's embedding can be searched for
+"""creates and returns a context vector, made up of the left and right context vecctors concatonated together, 
+for a given sentence, takes the data, the size of the vectors (so that they can match), and the vectors 
+object so that each word's embedding can be searched for"""
 def featurize(inData, vecSize, vectors):
     # holds the returnable data (after it has been featurized)
     outData = []
@@ -129,7 +127,6 @@ def classify(featureVector, weightMatrix):
     scores = np.array([featureVector @ weightVector for weightVector in weightMatrix])
     return softmax(scores)
 
-
 # function returns the accuracy of a trained weights matrix. takes the data, the weights, and the classes key
 # (see and watch) so that they can be properly compared as the guess is numerical and the gold is a string
 def accuracy(weightMatrix, featureMatrix, classes):
@@ -149,10 +146,10 @@ def accuracy(weightMatrix, featureMatrix, classes):
     # after classifying all the words with the trained weights, returns the accuracy 
     return correct / classified
 
-
 # function takes the training data, a weight matrix, a learning rate, the classes key, and the max number of 
 # iterations   
 def logisticRegression(trainData, weightMatrix, LR, classes, maxIts):
+    print("Training...")
     # initializes variable to hold the number of iterations done 
     its = 0
     # goes until it reaches the max number of iterations
@@ -173,11 +170,10 @@ def logisticRegression(trainData, weightMatrix, LR, classes, maxIts):
     # returns the learned weights 
     return weightMatrix 
 
-
 # makes see and watch data
-# kwic is a typical keyword in context search, the one being done here is not case sensitive however, each
-# sentence also gets it's information of [fileName, textNum, sentenceNum, wordNum] where sentenceNum is 
-# specific to the text and wordNum is specific to the sentence. both are 0 indexed 
+"""kwic is a typical keyword in context search, the one being done here is not case sensitive however, each
+sentence also gets it's information of [fileName, textNum, sentenceNum, wordNum] where sentenceNum is 
+specific to the text and wordNum is specific to the sentence. both are 0 indexed """
 seeData = [sentence.append("see") or sentence  for sentence in coca.kwic("see")]
 watchData = [sentence.append("watch") or sentence for sentence in coca.kwic("watch")]
 # processes the data seperately 
@@ -185,21 +181,16 @@ see = processing(seeData)
 watch = processing(watchData)
 # splits the data into train, dev, and test data
 train, dev, test = splitData(see, watch)
-print("data made")
-
 
 # sets the vectors 
 vectors = gensim.downloader.load('glove-twitter-200')
 # holds the vector 
 vecSize = 200
 
-
 # featurizes the data
 featTrainData = featurize(train, vecSize, vectors)
 featDevData = featurize(dev, vecSize, vectors)
 featTestData = featurize(test, vecSize, vectors)
-print("data featurized")
-
 
 # creates the weights to be trained
 weights = np.zeros(shape=(2,(vecSize * 2)))
@@ -210,19 +201,17 @@ LR = 0.00035
 its = 75
 learnedWeights = logisticRegression(featTrainData, weights, LR, classes, its)
 
-
 # after going through all the words checks the accuracy of the weights on the dev data
 devAccuracy = accuracy(learnedWeights, featDevData, classes)
 print("Dev accuracy:", devAccuracy)
 
-
 # test set accuracy
 accuracy(learnedWeights, featTestData, classes)
 
-
-# function reads in a file, finds the accuracy and creates a pandas dataframe so that each sentence can be 
-# investigated. the data frame is formated as the sentence, the human guess, the computer guess, and the 
-# computer's confidence in the guess. takes data, learned weights, and the word embeddings
+"""function reads in a file, finds the accuracy and creates a pandas dataframe so that each sentence can be 
+investigated. the data frame is formated as the sentence, the human guess (using the most common guess 
+from a survey of students), the computer guess, and the  computer's confidence in the guess. takes data, 
+learned weights, and the word embeddings"""
 def accAndDF(data, weights, vectors):
     # classes key
     classes = {'see': 0, 'watch': 1}
@@ -251,23 +240,17 @@ def accAndDF(data, weights, vectors):
     # returns a pandas dataframe of the results from the dict
     return pd.DataFrame.from_dict(results, orient="index", columns=["human", "computer", "comp certainty"])
 
-
-lines = [line[:-1].split('|') for line in open("test_data.txt")]
-print("test data")
+# these create dataframes for each data set respectively
+lines = [line[:-1].split('|') for line in open("seeVsWatch/test_data.txt")]
 results = accAndDF(lines, learnedWeights, vectors)
 
-
-lines = [line[:-1].split('|') for line in open("extra_tests.txt")]
-print("extra tests")
+lines = [line[:-1].split('|') for line in open("seeVsWatch/extra_tests.txt")]
 extraResults = accAndDF(lines, learnedWeights, vectors)
 
-
-lines = [line[:-1].split('|') for line in open("test_words.txt")]
-print("test words")
+lines = [line[:-1].split('|') for line in open("seeVsWatch/test_words.txt")]
 wordResults = accAndDF(lines, learnedWeights, vectors)
 
-
-# this is just to be able to create a gradio url that i can share
+"""# this is just to be able to create a gradio url that i can share
 
 # function takes a sentence and makes it usable 
 def takeText(text):
@@ -283,23 +266,19 @@ def classifier(text):
     guess = np.where(probs == index)[0][0]
     return "see" if guess == 0 else "watch"
 
-
 # creates gradio share link
 demo = gradio.Interface(fn=classifier, inputs='text', outputs='text')
-demo.launch(share=True)
-exit()
+demo.launch(share=True)"""
 
-# At this point my model has been trained and the investigation complete but it is worth checking it against a scikit learn model to see how well I am doing, did in comparison. I use a logistic regression model for a direct comparison and a perceptron model just to see if my model does better than a different type. The models will be checked using the COCA test data and the made up data, however confidence scores cannot be returned as the models just do binary classification not probabilities. So only their accuracies can be compared. 
+"""At this point my model has been trained and the investigation complete but it is worth checking it against
+a scikit learn model to see how well I am doing, in comparison. I use a logistic regression model for
+a direct comparison and a perceptron model just to see if my model does better than a different type. The
+models will be checked using the COCA test data and the made up data, however confidence scores cannot be 
+returned as the models just do binary classification not probabilities. So only their accuracies can be 
+compared. """
 
-# In[52]:
-
-
+# this makes the log regressions model 
 from sklearn.linear_model import LogisticRegression
-
-
-# In[53]:
-
-
 # this creates the features and class lists that the models need 
 features = []
 classes = []
@@ -310,36 +289,27 @@ for data in featTrainData:
     else:
         classes.append(1)
 
-
-# In[54]:
-
-
 # builds the log regression classifier
 classifier = LogisticRegression(solver = 'lbfgs', multi_class = 'auto')
 classifier.fit(features, classes)
-
-
-# In[70]:
-
 
 # checks it using the test data
 correctClasses = {'see': 0, 'watch': 1}
 correct = 0
 classified = 0
-    
+
+"""because the accuracy I had written requires different parameters than what the scikit models return
+i just use a loop to run it quickly"""
+
 for data in featTestData:
     if classifier.predict([data[0]]) == correctClasses[data[2]]:
         correct += 1
     classified += 1
 correct / classified
 
-
-# In[56]:
-
-
-# function returns the accuracy of the scikit log regression model and returns a dataframe of the results
-# takes the data and word embeddings 
-# works same as the accAndDF function but using the scikit log regression predictions
+"""function returns the accuracy of the scikit log regression model and returns a dataframe of the results
+takes the data and word embeddings 
+works same as the accAndDF function but using the scikit log regression predictions"""
 def logRegAccAndDF(data, vectors):
     correctClasses = {'see': 0, 'watch': 1}
     correct = 0
@@ -357,37 +327,20 @@ def logRegAccAndDF(data, vectors):
     return pd.DataFrame.from_dict(results, orient="index", columns=["log"])
 
 
-# In[73]:
-
-
-lines = [line[:-1].split('|') for line in open("test_data.txt")]
+lines = [line[:-1].split('|') for line in open("seeVsWatch/test_data.txt")]
 logTests = logRegAccAndDF(lines, vectors)
 
-
-# In[58]:
-
-
-lines = [line[:-1].split('|') for line in open("extra_tests.txt")]
+lines = [line[:-1].split('|') for line in open("seeVsWatch/extra_tests.txt")]
 logExtra = logRegAccAndDF(lines, vectors)
 
-
-# In[82]:
-
-
-lines = [line[:-1].split('|') for line in open("test_words.txt")]
+lines = [line[:-1].split('|') for line in open("seeVsWatch/test_words.txt")]
 logWords = logRegAccAndDF(lines, vectors)
 
 
-# In[60]:
-
-
+# this will allow me to test against the perceptron model
 from sklearn.linear_model import Perceptron 
 clf = Perceptron()
 clf.fit(features, classes)
-
-
-# In[74]:
-
 
 correctClasses = {'see': 0, 'watch': 1}
 correct = 0
@@ -399,13 +352,9 @@ for data in featTestData:
     classified += 1
 correct / classified
 
-
-# In[62]:
-
-
-# function returns the accuracy of the scikit perceptron model and returns a dataframe of the results
-# takes the data and word embeddings 
-# works same as the accAndDF function but using the scikit perceptron predictions
+"""function returns the accuracy of the scikit perceptron model and returns a dataframe of the results
+takes the data and word embeddings 
+works same as the accAndDF function but using the scikit perceptron predictions"""
 def percepAccAndDF(data, vectors):
     correctClasses = {'see': 0, 'watch': 1}
     correct = 0
@@ -423,55 +372,33 @@ def percepAccAndDF(data, vectors):
     return pd.DataFrame.from_dict(results, orient="index", columns=["percep"]) 
 
 
-# In[75]:
-
-
-lines = [line[:-1].split('|') for line in open("test_data.txt")]
+lines = [line[:-1].split('|') for line in open("seeVsWatch/test_data.txt")]
 percepTests = percepAccAndDF(lines, vectors)
 
 
-# In[64]:
-
-
-lines = [line[:-1].split('|') for line in open("extra_tests.txt")]
+lines = [line[:-1].split('|') for line in open("seeVsWatch/extra_tests.txt")]
 percepExtra = percepAccAndDF(lines, vectors)
 
 
-# In[83]:
-
-
-lines = [line[:-1].split('|') for line in open("test_words.txt")]
+lines = [line[:-1].split('|') for line in open("seeVsWatch/test_words.txt")]
 percepWords = percepAccAndDF(lines, vectors)
 
 
-# Below are the dataframes for my model, the sckit log regression model, and the scikit perceptron models for the test sentnces, the extra test sentences, and the test words. 
-
-# In[76]:
-
-
+"""Below are the dataframes for my model, the sckit log regression model, and the scikit perceptron models
+for the test sentnces, the extra test sentences, and the test words. """
 # test sentences
 testFrames = [results, logTests, percepTests]
-pd.concat(testFrames, axis=1)
-
-
-# In[67]:
+print("\nTest sentences:")
+print(pd.concat(testFrames, axis=1))
 
 
 # extra test sentences
 extraFrames = [extraResults, logExtra, percepExtra]
-pd.concat(extraFrames, axis=1)
-
-
-# In[84]:
+print("\Extra sentences:")
+print(pd.concat(extraFrames, axis=1))
 
 
 # test words
 wordFrames = [wordResults, logWords, percepWords]
-pd.concat(wordFrames, axis=1)
-
-
-# In[ ]:
-
-
-
-
+print("\nTest words:")
+print(pd.concat(wordFrames, axis=1))

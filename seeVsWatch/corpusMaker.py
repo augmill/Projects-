@@ -1,3 +1,4 @@
+# the class is one that allows for a corpus object that can hold texts and has, currently, building and a couple practical functions 
 class Corpus:
     def __init__(self):
         # holds all the text numbers in the corpus
@@ -9,10 +10,11 @@ class Corpus:
         self.textKey = {}
         
     # reads in a file to the corpus
-    def readInFile(self, file):
+    def readInFile(self, file, path=None):
         fileName = file[4:-4]
         # reads in the file line by line
-        lines = [line[:-1].split('\t') for line in open("COCA/"+file)]
+        if path == None: lines = [line[:-1].split('\t') for line in open(file)]
+        else: lines = [line[:-1].split('\t') for line in open(path+file)]
         # holds all the texts and their words format {textNumber: (wordData, sentences)}
         data = {}
         # holds all of the text numbers from that file
@@ -54,15 +56,14 @@ class Corpus:
                 # checks if it is the end of the file
                 if lines[i+1][0] == 'END':
                     break
-        print(fileName,"read in")
-        return fileName, data, fileTexts 
+        self.data[fileName] = data
+        self.textKey.update(fileTexts) 
      
-    # reads in a list of files
-    def readInSeveral(self, files):
+    # reads in a list of files and provides space for a path as necessary
+    def readInSeveral(self, files, path=None):
         for file in files:
-            fileName, data, fileTexts = self.readInFile(file)
-            self.data[fileName] = data
-            self.textKey.update(fileTexts)
+            if path == None: self.readInFile(file, path)
+            else: self.readInFile(file, path)
     
     # searchs for a variety of things depending on input
     def search(self, textNum, sentenceNum=None, wordNum=None, type=None, sentenceAsWords=False, fileName=None):

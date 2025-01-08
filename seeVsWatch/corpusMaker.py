@@ -8,7 +8,7 @@ class Corpus:
         # a key of what is in what position for the word data
         self.searchKey = {"word": 0, "lemma": 1, "pos": 2}
         self.textKey = {}
-        
+    
     # reads in a file to the corpus
     def readInFile(self, file, path=None):
         fileName = file[4:-4]

@@ -1,0 +1,1 @@
+This project looks to determine whether the lemma "see" or "watch" should be used in the context of a sentence using a logistic regression and other machine learning classifiers. The contexts are all those in which episodic digital entertainment (tv shows and movies) are being viewed.

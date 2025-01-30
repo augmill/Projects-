@@ -1,1 +1,1 @@
-This holds a machine learning project done in school, the project folder has its own read me.
+This holds two projects. One is more data science focused, the political action one, and the other is a machine learning project, the see vs watch one. Both were done in school but were projects of my own creation and desire. Each project's folder has its own read me with information about the individual project. 

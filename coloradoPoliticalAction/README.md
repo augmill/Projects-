@@ -1,0 +1,1 @@
+This project was done in spring of 2023 and was aimed at trying to see how political action differed based on the amount of protests and how voters turned out. 

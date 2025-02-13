@@ -1,4 +1,4 @@
-# the class is one that allows for a corpus object that can hold texts and has, currently, building and a couple practical functions 
+# the class is one that allows for a corpus object that can hold texts and has, currently, a building and a couple, practical functions 
 class Corpus:
     def __init__(self):
         # holds all the text numbers in the corpus
@@ -8,6 +8,8 @@ class Corpus:
         # a key of what is in what position for the word data
         self.searchKey = {"word": 0, "lemma": 1, "pos": 2}
         self.textKey = {}
+        '''# holds the file type so that the correct handling occurs
+        self.fileType = ""'''
     
     # reads in a file to the corpus
     def readInFile(self, file, path=None):

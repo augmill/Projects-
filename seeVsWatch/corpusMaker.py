@@ -155,10 +155,10 @@ class Corpus:
             fileName = self.findFileText(textNum)
             # if the search is for only the part of speech 
             if withWords == False:
-                return [(i, [word[2] for word in sent]) for i, sent in enumerate(self.data[fileName][textNum][0])]
+                return [[word[2] for word in sent] for sent in self.data[fileName][textNum][0]]
             # if the searcg us for the word and its part of speech
             else:
-                return [(i, [(word[0], word[2]) for word in sent]) for i, sent in enumerate(self.data[fileName][textNum][0])]
+                return [[(word[0], word[2]) for word in sent] for sent in self.data[fileName][textNum][0]]
         # if the parts of speech are desired for a specific sentence
         else: 
             # if the search is for only the part of speech 

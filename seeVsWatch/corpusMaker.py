@@ -177,6 +177,5 @@ pos finder
 sentence finder 
 patern finder (pos with words)
 key phrase in context
-# NOTE: this file may have "unnecessary" comments as it was intended to be able to be used by those less versed in writing code or
 '''
 

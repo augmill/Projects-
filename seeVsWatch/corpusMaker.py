@@ -1,4 +1,5 @@
 # the class is one that allows for a corpus object that can hold texts and has, currently, a building and a couple, practical functions 
+# NOTE: this class is currently only designed for one file type, found in the COCA folder
 class Corpus:
     def __init__(self):
         # holds all the text numbers in the corpus
@@ -177,5 +178,6 @@ pos finder
 sentence finder 
 patern finder (pos with words)
 key phrase in context
+add other file types
 '''
 

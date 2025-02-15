@@ -67,9 +67,9 @@ class Corpus:
             if path == None: self.readInFile(file, path)
             else: self.readInFile(file, path)
     
-    # searchs for a variety of things depending on input
+    # searchs for a variety of things depending on input, requires at least a text number 
     def search(self, textNum, sentenceNum=None, wordNum=None, type=None, sentenceAsWords=False, fileName=None):
-        # creates fileName if none given
+        # finds the relevant fileName if none given
         if fileName == None:
             fileName = self.findFileText(textNum)
         # returns a search for the sentences of a given text
@@ -85,6 +85,7 @@ class Corpus:
         elif type == None:
             return "Word: {}, Lemma: {}, POS: {}".format(*self.data[fileName][textNum][0][sentenceNum][wordNum])
         # returns a search for the specific word info from a word from a given sentence from a given text
+        # type is word using 0, lemma using 1, or pos using 2
         else:
             return self.data[fileName][textNum][0][sentenceNum][wordNum][self.searchKey[type]]
 
@@ -94,56 +95,79 @@ class Corpus:
             if textNum in texts:
                 return file
 
-    # returns the key word in context either from all files or just one text and will do so with or without case sensitivity
+    # returns all sentences with the keyword in context either from all files or just one text and will do so with or without case sensitivity
     def kwic(self, keyword, fileName=None, caseSensitive=False):
+        # creates a list to hold all sentences with the target sentence, with given parameters
         sentences = []
+        # if the search is not case sensetive
         if caseSensitive == False:
+            # if the search is for a the whole corpus
             if fileName == None:
+                # loops through every sentence in corpus 
                 for fileName, texts in self.data.items():
                     for text, textData in texts.items():
                         for i, sentence in enumerate(textData[1]):
+                            # breaks the sentence into the individual words 
                             words = sentence.lower().split()
+                            # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences 
                             if keyword.lower() in words:
                                 sentences.append([sentence, [fileName, text, i, words.index(keyword)]])
+            # if the search is for a specific file
             else: 
+                # loops through each sentence in the given file
                 for text, textData in self.data[fileName].items():
                     for i, sentence in enumerate(textData[1]):
+                        # breaks the sentence into the individual words
                         words = sentence.lower().split()
+                        # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences
                         if keyword.lower() in words:
                             sentences.append([sentence, [fileName, text, i, words.index(keyword)]])
+        # if the search is case sensitive
         else:
+            # if the search is for a the whole corpus
             if fileName == None:
+                #loops through every sentence in corpus
                 for fileName, texts in self.data.items():
                     for text, textData in texts.items():
                         for i, sentence in enumerate(textData[1]):
+                            # breaks the sentence into the individual words
                             words = sentence.split()
+                            # checks if the keyword is in the sentence and if so adds the sentence to the list of target sentences
                             if keyword in words:
                                 sentences.append([sentence, [fileName, text, i, words.index(keyword)]])
+            # if there is a file name
             else: 
+                # if the search is for a specific file
                 for text, textData in self.data[fileName].items():
                     for i, sentence in enumerate(textData[1]):
+                        # breaks the sentence into the individual words
                         words = sentence.split()
                         if keyword in words:
+                            # checks if the keyword is in the sentence and if so adds the sentence to the list of target sentences
                             sentences.append([sentence, [fileName, text, i, words.index(keyword)]])
         return sentences
 
-    # returns a text or sentence as it's parts of speech either with or without the word
-    def asPOS(self,textNum, sentenceNum=None, withWords=False):
+    # returns a text or sentence as it's parts of speech either with or without the words
+    def asPOS(self, textNum, sentenceNum=None, withWords=False):
+        # if parts of speech are desired for whole text
         if sentenceNum == None:
+            # sets the file name given the text number 
+            fileName = self.findFileText(textNum)
+            # if the search is for only the part of speech 
+            if withWords == False:
+                return [(i, [word[2] for word in sent]) for i, sent in enumerate(self.data[fileName][textNum][0])]
+            # if the searcg us for the word and its part of speech
+            else:
+                return [(i, [(word[0], word[2]) for word in sent]) for i, sent in enumerate(self.data[fileName][textNum][0])]
+        # if the parts of speech are desired for a specific sentence
+        else: 
+            # if the search is for only the part of speech 
             if withWords == False:
                 return[word[2] for word in self.search(textNum, sentenceNum, sentenceAsWords=True)]
+            # if the search is for the word and its part of speech
             else:
                 return [(word[0], word[2]) for word in self.search(textNum, sentenceNum, sentenceAsWords=True)]
-        else: 
-            pos = []
-            fileName = self.findFileText(textNum)
-            if withWords == False:
-                for i in range(len(self.data[fileName][textNum][0])):
-                    pos.append([word[2] for word in self.data[fileName][textNum][0][1]])
-            else:
-                for i in range(len(self.data[fileName][textNum][0])):
-                    pos.append([(word[0], word[2]) for word in self.data[fileName][textNum][0][1]])
-            return pos
+            
     
 
 '''
@@ -153,5 +177,6 @@ pos finder
 sentence finder 
 patern finder (pos with words)
 key phrase in context
+# NOTE: this file may have "unnecessary" comments as it was intended to be able to be used by those less versed in writing code or
 '''
 

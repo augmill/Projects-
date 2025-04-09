@@ -1,0 +1,31 @@
+from corpusMaker import Corpus
+coca = Corpus()
+
+# reads in all the files into the coca object 
+files = ["wlp_acad.txt", "wlp_blog.txt", "wlp_fic.txt", "wlp_mag.txt", "wlp_news.txt", "wlp_spok.txt", "wlp_tvm.txt", "wlp_web.txt"]
+coca.readInSeveral(files, "seeVsWatch/COCA/")
+seeData = [sentence.append("see") or sentence  for sentence in coca.kwic("see")]
+for sentence, info, keyword in seeData:
+    sentence = sentence.split(' ')
+    # textNum, sentenceNum=None, wordNum=None, type=None, sentenceAsWords=False, fileName=None
+    # [fileName, textNum, sentenceNum, wordNum]
+    data = [1,2,3,4]
+    # f, tr, t, o = *data
+    print()
+    break
+
+
+# coca.kwic("hate")
+# print(coca.findPOS('fw', 'mag', textNum = 4144841))
+# print(coca.asPOS(4104741, 15, withWords=True, asSentence=True))
+# 15
+
+
+# 4144841
+# PO
+# for fileName, texts in self.data.items():
+#     for text, textData in texts.items():
+#         for sentNum, sentence in enumerate(textData[0]):
+#             for wordIdx, word in enumerate(sentence):
+#                 if word[2] == POS:
+#                     POSs.append([word[0], [fileName, text, sentNum, wordIdx]])

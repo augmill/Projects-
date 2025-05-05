@@ -13,11 +13,12 @@ def processing(inData, corpus):
     dataSet = set()
     for sentence, info, keyword in inData:
         # finds the words POS
-        # pos = coca.search(info[1], info[2], info[3], fileName=info[0]).split(' ')[-1]
-        if 'v' not in corpus.search(info[1], info[2], info[3], fileName=info[0]).split(' ')[-1]:
+        if 'v' not in corpus.search(textNum = info[1], sentenceNum = info[2], wordNum = info[3], fileName=info[0]).split(' ')[-1]:
             continue
         #sentence split up
-        splitSent = sentence[0].split(' ')
+        splitSent = sentence.split(' ')
+        # stores the word form as the keyword to be guessed
+        keyword = splitSent[info[3]].lower()
         # [the index is the keyword's index which is given as part of the kwic search]
         splitSent[info[3]] = '*'
         fullSent = ' '.join(splitSent)
@@ -102,6 +103,11 @@ def softmax(scores):
     exps = np.exp(scores)
     return exps / np.sum(exps)
 
+# may need as torch tensor
+def logSoftmax(scores):
+    exps = np.exp(scores)
+    return exps / np.sum(exps)
+
 # function classifies by returning the softmax of the  
 def classify(featureVector, weightMatrix):
     scores = np.array([featureVector @ weightVector for weightVector in weightMatrix])
@@ -133,16 +139,22 @@ def logisticRegression(trainData, weightMatrix, LR, classes, maxIts):
     # initializes variable to hold the number of iterations done 
     its = 0
     # goes until it reaches the max number of iterations
-    for i in range(0,maxIts):
-        print(f'Iteration {i+1}')
+    for i in tqdm(range(0,maxIts)):
+        # print(f'Iteration {i+1}')
         # loops through every word breaking it up into the feature vector, the sentence info, and the gold
-        for featureVector, info, gold in tqdm(trainData):
+        for featureVector, info, gold in trainData:
             # calculates the probabilities of each class for the given features
             probabilities = classify(featureVector, weightMatrix)
             # goes through all of the weights to adjust
             for i in classes:
                 # determines if the current set of weights is the correct set (ie for a given class if it 
                 # is the correct class) to set the y value
+                
+                # if we use multiple do we want to have the change depend whether or not they get the right lemme but not the 
+                # right tense
+                # if i == gold check if right lemma (classes[i][0]), if so, add 0.75 if right tense add 0.25, if wrong 0 
+                # weight index would be classes[i][1]
+
                 y = 1.0 if i == gold else 0.0
                 # changes the weights current class's weight values 
                 weightMatrix[classes[i]] = weightMatrix[classes[i]] + LR * (y - 
@@ -155,9 +167,8 @@ def logisticRegression(trainData, weightMatrix, LR, classes, maxIts):
 investigated. the data frame is formated as the sentence, the human guess (using the most common guess 
 from a survey of students), the computer guess, and the  computer's confidence in the guess. takes data, 
 learned weights, and the word embeddings"""
-def accAndDF(data, weights, vectors, vecSize):
-    # classes key
-    classes = {'see': 0, 'watch': 1}
+# can i change to use just acc
+def accAndDF(data, weights, vectors, vecSize, classes):
     # the dictionary holding all the results the the sentence as the key
     results = {}
     # initialized num correct and classified
@@ -171,7 +182,8 @@ def accAndDF(data, weights, vectors, vecSize):
         index = max(probs)
         guess = np.where(probs == index)[0][0]
         # creates the string version of the guess
-        guessWR = "see" if guess == 0 else "watch"
+        # may  need change for more classes
+        guessWR = list(classes.keys())[list(classes.values()).index(guess)]
         # checks if the guess is correct
         if guess == classes[test[2]]:
             correct += 1

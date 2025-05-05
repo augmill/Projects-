@@ -1,3 +1,4 @@
+from nltk import WordNetLemmatizer
 # the class is one that allows for a corpus object that can hold texts and has, currently, a building and a couple, practical functions 
 # NOTE: this class is currently only designed for one file type, found in the COCA folder
 class Corpus:
@@ -97,55 +98,116 @@ class Corpus:
                 return file
 
     # returns all sentences with the keyword in context either from all files or just one text and will do so with or without case sensitivity
-    def kwic(self, keyword, fileName=None, caseSensitive=False):
+    def kwic(self, keyword, fileName=None, caseSensitive=False, lemma=False):
         # creates a list to hold all sentences with the target sentence, with given parameters
         sentences = []
-        # if the search is not case sensetive
-        if caseSensitive == False:
-            # if the search is for a the whole corpus
-            if fileName == None:
-                # loops through every sentence in corpus 
-                for fileName, texts in self.data.items():
-                    for text, textData in texts.items():
+        # if the search is mean for the wordform not the lemma
+        if lemma == False:
+            # if the search is not case sensetive
+            if caseSensitive == False:
+                # if the search is for a the whole corpus
+                if fileName == None:
+                    # loops through every sentence in corpus 
+                    for fileName, texts in self.data.items():
+                        for text, textData in texts.items():
+                            for sentNum, sentence in enumerate(textData[1]):
+                                # breaks the sentence into the individual words 
+                                words = sentence.lower().split()
+                                # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences 
+                                if keyword.lower() in words:
+                                    sentences.append([sentence, [fileName, text, sentNum, words.index(keyword)]])
+                # if the search is for a specific file
+                else: 
+                    # loops through each sentence in the given file
+                    for text, textData in self.data[fileName].items():
                         for sentNum, sentence in enumerate(textData[1]):
-                            # breaks the sentence into the individual words 
+                            # breaks the sentence into the individual words
                             words = sentence.lower().split()
-                            # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences 
+                            # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences
                             if keyword.lower() in words:
                                 sentences.append([sentence, [fileName, text, sentNum, words.index(keyword)]])
-            # if the search is for a specific file
-            else: 
-                # loops through each sentence in the given file
-                for text, textData in self.data[fileName].items():
-                    for sentNum, sentence in enumerate(textData[1]):
-                        # breaks the sentence into the individual words
-                        words = sentence.lower().split()
-                        # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences
-                        if keyword.lower() in words:
-                            sentences.append([sentence, [fileName, text, sentNum, words.index(keyword)]])
-        # if the search is case sensitive
-        else:
-            # if the search is for a the whole corpus
-            if fileName == None:
-                #loops through every sentence in corpus
-                for fileName, texts in self.data.items():
-                    for text, textData in texts.items():
+            # if the search is case sensitive
+            else:
+                # if the search is for a the whole corpus
+                if fileName == None:
+                    #loops through every sentence in corpus
+                    for fileName, texts in self.data.items():
+                        for text, textData in texts.items():
+                            for sentNum, sentence in enumerate(textData[1]):
+                                # breaks the sentence into the individual words
+                                words = sentence.split()
+                                # checks if the keyword is in the sentence and if so adds the sentence to the list of target sentences
+                                if keyword in words:
+                                    sentences.append([sentence, [fileName, text, sentNum, words.index(keyword)]])
+                # if there is a file name
+                else: 
+                    # loops through each sentence in the given file
+                    for text, textData in self.data[fileName].items():
                         for sentNum, sentence in enumerate(textData[1]):
                             # breaks the sentence into the individual words
                             words = sentence.split()
-                            # checks if the keyword is in the sentence and if so adds the sentence to the list of target sentences
                             if keyword in words:
+                                # checks if the keyword is in the sentence and if so adds the sentence to the list of target sentences
                                 sentences.append([sentence, [fileName, text, sentNum, words.index(keyword)]])
-            # if there is a file name
-            else: 
-                # loops through each sentence in the given file
-                for text, textData in self.data[fileName].items():
-                    for sentNum, sentence in enumerate(textData[1]):
-                        # breaks the sentence into the individual words
-                        words = sentence.split()
-                        if keyword in words:
-                            # checks if the keyword is in the sentence and if so adds the sentence to the list of target sentences
-                            sentences.append([sentence, [fileName, text, sentNum, words.index(keyword)]])
+        # if the search is by lemma 
+        # may be worth changing things to elif to offer error statement
+        elif lemma == True:  
+            wnl = WordNetLemmatizer()   
+            # if the search is not case sensetive
+            if caseSensitive == False:
+                # if the search is for a the whole corpus
+                if fileName == None:
+                    # loops through every sentence in corpus 
+                    for fileName, texts in self.data.items():
+                        for text, textData in texts.items():
+                            for sentNum, sentence in enumerate(textData[1]):
+                                # breaks the sentence into the individual words 
+                                words = sentence.lower().split()
+                                #makes a list of the lemmas to check if the target lemma is in the sentence
+                                lemmas = [wnl.lemmatize(word) for word in words]
+                                # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences 
+                                if keyword.lower() in lemmas:
+                                    sentences.append([sentence, [fileName, text, sentNum, lemmas.index(keyword)]])
+                # if the search is for a specific file
+                else: 
+                    # loops through each sentence in the given file
+                    for text, textData in self.data[fileName].items():
+                        for sentNum, sentence in enumerate(textData[1]):
+                            # breaks the sentence into the individual words
+                            words = sentence.lower().split()
+                            #makes a list of the lemmas to check if the target lemma is in the sentence
+                            lemmas = [wnl.lemmatize(word) for word in words]
+                            # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences 
+                            if keyword.lower() in lemmas:
+                                sentences.append([sentence, [fileName, text, sentNum, lemmas.index(keyword)]])
+            # if the search is case sensitive
+            # this may be erroneous as it might be bad from lemmatization
+            else:
+                # if the search is for a the whole corpus
+                if fileName == None:
+                    #loops through every sentence in corpus
+                    for fileName, texts in self.data.items():
+                        for text, textData in texts.items():
+                            for sentNum, sentence in enumerate(textData[1]):
+                                # breaks the sentence into the individual words
+                                words = sentence.split()
+                                #makes a list of the lemmas to check if the target lemma is in the sentence
+                                lemmas = [wnl.lemmatize(word) for word in words]
+                                # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences 
+                                if keyword in lemmas:
+                                    sentences.append([sentence, [fileName, text, sentNum, lemmas.index(keyword)]])
+                # if there is a file name
+                else: 
+                    # loops through each sentence in the given file
+                    for text, textData in self.data[fileName].items():
+                        for sentNum, sentence in enumerate(textData[1]):
+                            # breaks the sentence into the individual words
+                            words = sentence.split()
+                            #makes a list of the lemmas to check if the target lemma is in the sentence
+                            lemmas = [wnl.lemmatize(word) for word in words]
+                            # checks if the keyword (ignroing case) is in the sentence and if so adds the sentence to the list of target sentences 
+                            if keyword in lemmas:
+                                sentences.append([sentence, [fileName, text, sentNum, lemmas.index(keyword)]])
         return sentences
 
     # returns a text or sentence as it's parts of speech either with or without the words

@@ -1,12 +1,16 @@
 import random
-import numpy as np #np or torch?
+import numpy as np
+import torch 
+from torch import nn 
+from torch.nn import functional as F
+from torch import optim 
 import pandas as pd
 from tqdm.autonotebook import tqdm
 
 """function goes through all the data and processes it by finding where in the setence the keyword is and 
 replacing it with the target symbol * and adds a tuple of the processed sentence and the keyword. a set 
 is used to prevent duplicate datum. takes the data"""
-def processing(inData, corpus):
+def processing(inData, corpus, classes):
     # the data to be returned 
     outData = []
     # the set to prevent duplicates
@@ -18,7 +22,7 @@ def processing(inData, corpus):
         #sentence split up
         splitSent = sentence.split(' ')
         # stores the word form as the keyword to be guessed
-        keyword = splitSent[info[3]].lower()
+        keyword = F.one_hot(splitSent[info[3]].lower(), 7)
         # [the index is the keyword's index which is given as part of the kwic search]
         splitSent[info[3]] = '*'
         fullSent = ' '.join(splitSent)
@@ -55,7 +59,7 @@ def featurize(inData, vecSize, vectors):
     for sentence, info, keyword in inData:
         sentence = sentence.split(' ')
         # creates context vectors for the left and right side
-        rContext, lContext = np.zeros(shape=(1,vecSize)), np.zeros(shape=(1,vecSize))
+        rContext, lContext = torch.empty(1,vecSize), torch.empty(1,vecSize)
         # true for left context, false for right context
         left = True 
         # counts the number of vectors added to each side
@@ -86,31 +90,25 @@ def featurize(inData, vecSize, vectors):
         # creates the normalized left and right contexts
         # also ensure no divide by 0 errors ie there is no context
         l = (lContext / lSummed)
-        if np.isnan(l).any():
-            l = np.zeros(shape=(1,vecSize))
+        if torch.isnan(l).any():
+            l = torch.empty(1,vecSize)
         r = (rContext / rSummed)
-        if np.isnan(r).any():
-            r = np.zeros(shape=(1,vecSize))
+        if torch.isnan(r).any():
+            r = torch.empty(1,vecSize)
         # concatonates the left and right contexts (both divided by the number of vectors added)
-        context = np.concatenate((l, r), axis=None)
+        context = torch.cat((l, r), axis=1)
         # context vector, the sentence's info, and the keyword
         outData.append((context, info, keyword))
     return outData
 
 #defines softmax function 
-# ** change to logsoftmax **
 def softmax(scores):
-    exps = np.exp(scores)
-    return exps / np.sum(exps)
-
-# may need as torch tensor
-def logSoftmax(scores):
-    exps = np.exp(scores)
-    return exps / np.sum(exps)
+    exps = torch.exp(scores)
+    return exps / torch.sum(exps)
 
 # function classifies by returning the softmax of the  
 def classify(featureVector, weightMatrix):
-    scores = np.array([featureVector @ weightVector for weightVector in weightMatrix])
+    scores = torch.Tensor([featureVector @ weightVector for weightVector in weightMatrix])
     return softmax(scores)
 
 # function returns the accuracy of a trained weights matrix. takes the data, the weights, and the classes key
@@ -125,7 +123,7 @@ def accuracy(weightMatrix, featureMatrix, classes):
         # determines the classification 
         probs = classify(featureVector[0], weightMatrix)
         index = max(probs)
-        guess = np.where(probs == index)[0][0]
+        guess = torch.where(probs == index)[0][0]
         # if the classification is correct add one to the correctly classified count
         if guess == classes[featureVector[2]]:
             correct += 1
@@ -140,7 +138,6 @@ def logisticRegression(trainData, weightMatrix, LR, classes, maxIts):
     its = 0
     # goes until it reaches the max number of iterations
     for i in tqdm(range(0,maxIts)):
-        # print(f'Iteration {i+1}')
         # loops through every word breaking it up into the feature vector, the sentence info, and the gold
         for featureVector, info, gold in trainData:
             # calculates the probabilities of each class for the given features
@@ -152,7 +149,6 @@ def logisticRegression(trainData, weightMatrix, LR, classes, maxIts):
                 
                 # if we use multiple do we want to have the change depend whether or not they get the right lemme but not the 
                 # right tense
-                # if i == gold check if right lemma (classes[i][0]), if so, add 0.75 if right tense add 0.25, if wrong 0 
                 # weight index would be classes[i][1]
 
                 y = 1.0 if i == gold else 0.0
@@ -180,7 +176,7 @@ def accAndDF(data, weights, vectors, vecSize, classes):
         # classifies the example
         probs = classify(test[0], weights)
         index = max(probs)
-        guess = np.where(probs == index)[0][0]
+        guess = torch.where(probs == index)[0][0]
         # creates the string version of the guess
         # may  need change for more classes
         guessWR = list(classes.keys())[list(classes.values()).index(guess)]

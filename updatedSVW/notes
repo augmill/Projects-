@@ -1,16 +1,17 @@
-2% increase from checking pos
+added some new methods to corpus maker for pos and also adjusted kwic to allow for lemma rather than wordform searches
 
+2% increase from adding a check for pos to ensure that we are only training on verbs
 
-do the embeddings hold for wordform or just lemma
-
-
-chnage to logsoftmax
-verify the edits to multi-class
-
-for the data with tense but still two classes
+or the data with tense (including it in classes as well as training data) but still two classes
 lr = 0.0002
 its = 75 
 dev acc: 0.8998447204968945
 test acc: 0.8959627329192547
 test data: 0.6363636363636364
 test words: 0.6
+
+Tried using logsoftmax
+when using logsoftmax, needed to drop learning rate by a lot 
+realized logsoftmax didn't work with my implimentation so switched to using a more formal neural netowrk approach
+
+figured 

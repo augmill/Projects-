@@ -9,7 +9,7 @@ a paper I wrote for my semantics class. """
 
 # corpusmaker is the py file that holds my corpus class
 from downloads import *
-from models import *
+from svwFuncs import *
 
 # creates the weights to be trained, vecSize * 2 accounts for concat context vec
 # weights would have to increase to at least 7 for multi-class
@@ -22,14 +22,12 @@ from models import *
 # classes = {'see': 0, 'saw' : 1, 'seen' : 2, 'sees': 3, 'watch' : 4, 'watched' : 5, 'watches' : 6}
 # 00035
 # 20 = 
-'''
 weights = np.zeros(shape=(7,(vecSize * 2)))
 classes = {'see': 0, 'saw' : 1, 'seen' : 2, 'sees': 3, 'watch' : 4, 'watched' : 5, 'watches' : 6}
-LR = 0.002
+LR = 0.000002
 its = 75
 learnedWeights = logisticRegression(featTrainData, weights, LR, classes, its)
 print(f'Dev acc: {accuracy(learnedWeights, featDevData, classes)}')
-'''
 
 # after going through all the words checks the accuracy of the weights on the dev data
 # devAccuracy = accuracy(learnedWeights, featDevData, classes)

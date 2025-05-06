@@ -13,6 +13,8 @@ vectors = gensim.downloader.load('glove-twitter-200')
 # holds the vector 
 vecSize = 200
 
+classes = {'see': 0, 'saw' : 1, 'seen' : 2, 'sees': 3, 'watch' : 4, 'watched' : 5, 'watches' : 6}
+
 # makes see and watch data
 """kwic is a typical keyword in context search, the one being done here is not case sensitive however, each
 sentence also gets it's information of [fileName, textNum, sentenceNum, wordNum] where sentenceNum is 
@@ -20,8 +22,8 @@ specific to the text and wordNum is specific to the sentence. both are 0 indexed
 seeData = [sentence.append("see") or sentence  for sentence in coca.kwic("see", lemma=True)]
 watchData = [sentence.append("watch") or sentence for sentence in coca.kwic("watch", lemma=True)]
 # processes the data seperately 
-see = processing(seeData, coca)
-watch = processing(watchData, coca)
+see = processing(seeData, coca, classes)
+watch = processing(watchData, coca, classes)
 # splits the data into train, dev, and test data
 train, dev, test = splitData(see, watch)
 

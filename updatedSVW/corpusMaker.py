@@ -101,7 +101,7 @@ class Corpus:
     def kwic(self, keyword, fileName=None, caseSensitive=False, lemma=False):
         # creates a list to hold all sentences with the target sentence, with given parameters
         sentences = []
-        # if the search is mean for the wordform not the lemma
+        # if the search is  for the wordform not the lemma
         if lemma == False:
             # if the search is not case sensetive
             if caseSensitive == False:
@@ -151,7 +151,7 @@ class Corpus:
                                 sentences.append([sentence, [fileName, text, sentNum, words.index(keyword)]])
         # if the search is by lemma 
         # may be worth changing things to elif to offer error statement
-        elif lemma == True:  
+        else:  
             wnl = WordNetLemmatizer()   
             # if the search is not case sensetive
             if caseSensitive == False:

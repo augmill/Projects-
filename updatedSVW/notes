@@ -14,4 +14,8 @@ Tried using logsoftmax
 when using logsoftmax, needed to drop learning rate by a lot 
 realized logsoftmax didn't work with my implimentation so switched to using a more formal neural netowrk approach
 
-figured 
+figured out that i need labels as one hot vectors 
+able to get a basic model to train, mediocore results but also need to play around with it more
+something wrong in my accuracy function, seems there is a corolation between batch size and what it returns, was able to get over 100
+
+will need to figure out how to be able to pass the proper test data

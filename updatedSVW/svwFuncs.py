@@ -2,10 +2,23 @@ import random
 import numpy as np
 import torch 
 from torch import nn 
-from torch.nn import functional as F
+# from torch.nn import functional as F # may not need
+# from sklearn.preprocessing import OneHotEncoder
 from torch import optim 
 import pandas as pd
 from tqdm.autonotebook import tqdm
+
+# function maks one hot vector to act as gold label
+def makeOneHot(value, classes):
+    numClasses = len(classes)
+    if numClasses != 7:
+        print(numClasses)
+    oneHot = torch.zeros(numClasses, dtype=int)
+    # try:
+    oneHot[classes[value]] = 1
+    # except: 
+    #     raise Exception(f'value: {value}\nclass: {classes[value]}\nclass type: {type(classes[value])}\none hot: {oneHot}')
+    return oneHot
 
 """function goes through all the data and processes it by finding where in the setence the keyword is and 
 replacing it with the target symbol * and adds a tuple of the processed sentence and the keyword. a set 
@@ -15,6 +28,8 @@ def processing(inData, corpus, classes):
     outData = []
     # the set to prevent duplicates
     dataSet = set()
+    # to make one hots
+    # ohe = OneHotEncoder(categories = classes.keys(), handle_unknown='ignore', sparse_output=False)
     for sentence, info, keyword in inData:
         # finds the words POS
         if 'v' not in corpus.search(textNum = info[1], sentenceNum = info[2], wordNum = info[3], fileName=info[0]).split(' ')[-1]:
@@ -22,7 +37,9 @@ def processing(inData, corpus, classes):
         #sentence split up
         splitSent = sentence.split(' ')
         # stores the word form as the keyword to be guessed
-        keyword = F.one_hot(splitSent[info[3]].lower(), 7)
+        keyword = torch.Tensor([classes[splitSent[info[3]].lower()]])
+        # keyword = makeOneHot(splitSent[info[3]].lower(), classes) 
+        # keyword = F.one_hot(torch.Tensor(classes[splitSent[info[3]].lower()]), 7)
         # [the index is the keyword's index which is given as part of the kwic search]
         splitSent[info[3]] = '*'
         fullSent = ' '.join(splitSent)
@@ -59,7 +76,7 @@ def featurize(inData, vecSize, vectors):
     for sentence, info, keyword in inData:
         sentence = sentence.split(' ')
         # creates context vectors for the left and right side
-        rContext, lContext = torch.empty(1,vecSize), torch.empty(1,vecSize)
+        rContext, lContext = torch.zeros(vecSize), torch.zeros(vecSize)
         # true for left context, false for right context
         left = True 
         # counts the number of vectors added to each side
@@ -91,12 +108,12 @@ def featurize(inData, vecSize, vectors):
         # also ensure no divide by 0 errors ie there is no context
         l = (lContext / lSummed)
         if torch.isnan(l).any():
-            l = torch.empty(1,vecSize)
+            l = torch.zeros(vecSize)
         r = (rContext / rSummed)
         if torch.isnan(r).any():
-            r = torch.empty(1,vecSize)
+            r = torch.zeros(vecSize)
         # concatonates the left and right contexts (both divided by the number of vectors added)
-        context = torch.cat((l, r), axis=1)
+        context = torch.cat((l, r), 0)
         # context vector, the sentence's info, and the keyword
         outData.append((context, info, keyword))
     return outData
